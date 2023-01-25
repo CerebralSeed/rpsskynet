@@ -117,7 +117,7 @@ def rps_skynet(game_memory = 5, batchsize = 128):
         loss=criterion(model_output, targets)
         loss.backward()
         optimizer.step()
-        print("Loss is ", loss.detach().item())
+        print("Model loss is ", loss.detach().item(), "(lower means the model is getting better).")
         winloss=check_winner(user_input, torch.argmax(model_output[:1,:].detach()), winloss)
         n_games+=1
         print("Win ratio: ", winloss/n_games, "Total games: ", n_games)
