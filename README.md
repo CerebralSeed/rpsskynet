@@ -11,7 +11,7 @@ pip install git+https://github.com/CerebralSeed/rpsskynet.git#egg=rpsskynet
 
 It WILL install Pytorch, if you do not have that already, which is the only dependency. 
 
-Once installed, to run your RPS adversary, use the following script:
+Once installed, to run your RPS adversary, use the following Python script:
 
 ```
 from rpsskynet.rpsskynet import rps_skynet
