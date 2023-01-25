@@ -24,4 +24,4 @@ To save/load a previous model, just use the prompts after the above is running. 
 
 If you are starting to train a model from scratch, be sure to play at least 200 games to initialize it's parameters. Then it should start performing better. 
 
-This was developed for fun and can be used as a training tool for new ML learners. 
+This was developed for fun and can be used as a training tool for new ML learners. The only file in the repo is under 130 lines of code.
