@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
-
+import time
 
 rps_dict={'r':0, 'p':1,'s':2}
-def check_winner(user_choice, ai_choice, winloss):
+def check_winner(user_choice, ai_choice, winloss): # get winner
+    # model trained to predict user number, shift model choice to the right one
     if ai_choice==2: ai_choice*=0
     else: ai_choice+=1
     if user_choice == ai_choice:
@@ -23,7 +24,7 @@ def check_winner(user_choice, ai_choice, winloss):
     print("The AI chose", ai_choice.item())
     return winloss
 
-def get_neuron_animal_size(num_params):
+def get_neuron_animal_size(num_params): # animal neuron count comparison
     animbrain={200:"tardigrade", 300: "roundworm", 5600: "jellyfish", 100000: "fruit fly", 250000: "ant",
         960000: "honeybee", 1771000:"gecko", 4300000: "guppy", 8500000: "tortoise", 16000000: "frog", 71000000: "household mouse",
     310000000:"pigeon", 500000000: "octopus", 760000000: "household cat", 2253000000: "dog", 86000000000: "human", 257000000000: "elephant"}
@@ -36,8 +37,8 @@ class RPSModel(torch.nn.Module):
         super().__init__()
         self.hidden_size=hidden_size
         self.mid_layers=mid_layers
-        in_features=3*game_memory
-        self.layer_1=torch.nn.Linear(in_features,hidden_size)
+        self.in_features=3*game_memory
+        self.layer_1=torch.nn.Linear(self.in_features,hidden_size)
         self.relu=nn.LeakyReLU()
         self.layer_mid=torch.nn.ModuleList([])
         for i in range(mid_layers):
@@ -52,17 +53,17 @@ class RPSModel(torch.nn.Module):
         x=self.layer_out(x)
         return x
 
-def model_startup(model):
+def model_startup(model): #initial text script after model is loaded
     num_params = sum(p.numel() for p in model.parameters())
-    num_neurons = int(model.hidden_size) * int(model.mid_layers) + 3
+    num_neurons = int(model.hidden_size) * int(model.mid_layers) + (model.in_features)+3
     print("Model size is", num_params, "parameters spread out over", num_neurons, "neurons.")
+    time.sleep(1)
     get_neuron_animal_size(num_neurons)
+    time.sleep(1)
 
-def rps_skynet():
-    game_memory = 5
-    batchsize = 128
-    hiddensize=input("Welcome to Rock, Paper, Scissors Skynet! Please enter my hidden_size(i.e. 32):")
-    mid_layers=input("Please enter the number of mid_layers(Hint: 2; do not exceed 8 layers to avoid the vanishing gradients problem):")
+def rps_skynet(game_memory = 5, batchsize = 128):
+    hiddensize=input("Welcome to Rock, Paper, Scissors Skynet! Please enter my hidden_size(i.e. 32): ")
+    mid_layers=input("Please enter the number of mid_layers(Hint: 2; under 8 to avoid vanishing gradients): ")
     model=RPSModel(game_memory, int(hiddensize), int(mid_layers))
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
@@ -71,18 +72,17 @@ def rps_skynet():
     old_games=torch.nn.functional.one_hot(torch.randint(0, 2, (1,game_memory)),3).float().view(1,-1)
     game_stack=torch.cat([game_stack, old_games])
     model_output=model(game_stack)
-
     n_games=winloss=0
     targets=torch.empty(0, dtype=torch.long)
     while True:
-        user_input1=input('What do you choose? (rock:r, paper:p, scissors:s) or (save, load, exit)')
+        user_input1=input('What do you choose? (rock:r, paper:p, scissors:s) or (save, load, exit): ')
         if user_input1 in rps_dict:
             user_input=torch.tensor(rps_dict[user_input1]).view(-1)
             targets=torch.cat([user_input, targets])
             targets=targets[:batchsize]
         else:
             if user_input1[:4]=="save":
-                path=input('Please enter the path to save(i.e. rps_model.pt):')
+                path=input('Please enter the path to save(i.e. rps_model.pt): ')
                 torch.save({
                     'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict(),
                     'n_games' : n_games, 'winloss' : winloss, 'hiddensize':hiddensize, 'midlayers':mid_layers,
@@ -91,7 +91,7 @@ def rps_skynet():
                 print("Model saved to ", path)
                 continue
             elif user_input1[:4]=="load":
-                path=input('Please enter the path to load(i.e. rps_model.pt):')
+                path=input('Please enter the path to load(i.e. rps_model.pt): ')
                 checkpoint=torch.load(path)
                 mid_layers=checkpoint['midlayers']
                 hiddensize=checkpoint['hiddensize']
@@ -126,4 +126,3 @@ def rps_skynet():
         game_stack=torch.cat([old_games, game_stack])
         game_stack=game_stack[:batchsize,:]
         model_output = model(game_stack)
-
