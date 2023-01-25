@@ -21,7 +21,7 @@ def check_winner(user_choice, ai_choice, winloss): # get winner
         winloss += 1
     else:
         print("You lose!")
-    print("The AI chose", ai_choice.item())
+    print("Skynet chose", ai_choice.item())
     return winloss
 
 def get_neuron_animal_size(num_params): # animal neuron count comparison
